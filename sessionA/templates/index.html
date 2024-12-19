@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">User Dashboard</h1>
+
+        <!-- Navigation -->
+        <nav class="nav nav-pills nav-fill mb-4">
+            <a class="nav-link" href="#" id="signup-tab">Signup</a>
+            <a class="nav-link" href="#" id="login-tab">Login</a>
+            <a class="nav-link" href="#" id="home-tab">Home</a>
+            <a class="nav-link" href="#" id="add-tab">Add Data</a>
+            <a class="nav-link" href="#" id="logout-tab">Logout</a>
+        </nav>
+
+        <!-- Content -->
+        <div id="content">
+            <!-- Content will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Dynamically load forms and handle AJAX calls
+
+            // Signup
+            $('#signup-tab').click(function () {
+                $('#content').html(`
+                    <h2>Signup</h2>
+                    <form id="signup-form">
+                        <div class="mb-3">
+                            <label for="signup-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="signup-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="signup-password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="signup-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Signup</button>
+                    </form>
+                `);
+
+                $('#signup-form').submit(function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '/api/signup/',
+                        method: 'POST',
+                        data: {
+                            Name: $('#signup-name').val(),
+                            Password: $('#signup-password').val()
+                        },
+                        success: function (response) {
+                            alert(response.message);
+                        },
+                        error: function (xhr) {
+                            alert('Error: ' + xhr.responseJSON.error);
+                        }
+                    });
+                });
+            });
+
+            // Login
+            $('#login-tab').click(function () {
+                $('#content').html(`
+                    <h2>Login</h2>
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label for="login-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="login-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </form>
+                `);
+
+                $('#login-form').submit(function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '/api/login/',
+                        method: 'POST',
+                        data: {
+                            Name: $('#login-name').val(),
+                            Password: $('#login-password').val()
+                        },
+                        success: function (response) {
+                            alert(response.message);
+                        },
+                        error: function (xhr) {
+                            alert('Error: ' + xhr.responseJSON.error);
+                        }
+                    });
+                });
+            });
+
+            // Home
+            $('#home-tab').click(function () {
+                $.ajax({
+                    url: '/api/home/',
+                    method: 'GET',
+                    success: function (response) {
+                        let content = '<h2>Home</h2><ul class="list-group">';
+                        response.forEach(data => {
+                            content += `
+                                <li class="list-group-item">
+                                    <strong>${data.fund_name}</strong> - Current Value: ${data.current_value}
+                                    <button class="btn btn-danger btn-sm float-end delete-btn" data-id="${data.id}">Delete</button>
+                                    <button class="btn btn-warning btn-sm float-end edit-btn me-2" data-id="${data.id}">Edit</button>
+                                </li>
+                            `;
+                        });
+                        content += '</ul>';
+                        $('#content').html(content);
+
+                        // Handle delete
+                        $('.delete-btn').click(function () {
+                            const id = $(this).data('id');
+                            $.ajax({
+                                url: `/api/delete/${id}/`,
+                                method: 'POST',
+                                success: function (response) {
+                                    alert(response.message);
+                                    $('#home-tab').click(); // Reload home
+                                }
+                            });
+                        });
+
+                        // Handle edit
+                        $('.edit-btn').click(function () {
+                            const id = $(this).data('id');
+                            // Handle edit logic
+                        });
+                    }
+                });
+            });
+
+            // Add Data
+            $('#add-tab').click(function () {
+                $('#content').html(`
+                    <h2>Add Data</h2>
+                    <form id="add-form">
+                        <div class="mb-3">
+                            <label for="add-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="add-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="add-invested-amount" class="form-label">Invested Amount</label>
+                            <input type="number" class="form-control" id="add-invested-amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="add-fund-code" class="form-label">Fund Code</label>
+                            <input type="number" class="form-control" id="add-fund-code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="add-units-held" class="form-label">Units Held</label>
+                            <input type="number" class="form-control" id="add-units-held" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                `);
+
+                $('#add-form').submit(function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        url: '/api/add/',
+                        method: 'POST',
+                        data: {
+                            Name: $('#add-name').val(),
+                            Invested_Amount: $('#add-invested-amount').val(),
+                            fund_code: $('#add-fund-code').val(),
+                            Units_held: $('#add-units-held').val()
+                        },
+                        success: function (response) {
+                            alert(response.message);
+                        },
+                        error: function (xhr) {
+                            alert('Error: ' + xhr.responseJSON.error);
+                        }
+                    });
+                });
+            });
+
+            // Logout
+            $('#logout-tab').click(function () {
+                $.ajax({
+                    url: '/api/logout/',
+                    method: 'GET',
+                    success: function (response) {
+                        alert(response.message);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
